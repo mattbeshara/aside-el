@@ -44,6 +44,9 @@
 ;; (define-key global-map (kbd "C-S-s") #'my-aside-dired-dwim)
 ;; (aside-dired-define-key-overrides)
 
+;; You may also want to hide everything but the file names by default with:
+;; (add-hook 'dired-mode-hook #'dired-hide-details-mode)
+
 
 ;;; Code:
 
