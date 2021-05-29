@@ -4,7 +4,7 @@
 
 ;; Author: Matt Beshara <m@mfa.pw>
 ;; URL: https://github.com/mattbeshara/aside-el
-;; Version: 1.0.0
+;; Version: 1.0.1
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -138,7 +138,8 @@ window, if the current buffer is an Aside-Dired buffer."
         (if (file-directory-p file)
             (aside-dired file)
             (dired--find-file #'find-file-other-window file))
-        (dired--find-file #'find-file file))))
+        (dired--find-file #'find-file file))
+      (dired-find-file)))
 
 (defun aside-dired-up-directory ()
   "A wrapper around the standard DIRED-UP-DIRECTORY functionality which uses
