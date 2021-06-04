@@ -1,10 +1,10 @@
-;;; aside.el --- Toggle-able side windows -*- lexical-binding: t -*-
+;;; aside-dired.el --- Light, powerful file browser -*- lexical-binding: t -*-
 
 ;; Copyright 2021 Matt Beshara
 
 ;; Author: Matt Beshara <m@mfa.pw>
 ;; URL: https://github.com/mattbeshara/aside-el
-;; Version: 1.0.1
+;; Version: 1.1.0
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 ;;
-;; The DIRED configuration for Aside creates a side window displaying a Dired
+;; The Dired configuration for Aside creates a side window displaying a Dired
 ;; buffer at the root of the current project when first used, but then toggles
 ;; the visibility of that side window, and allows you to jump directly to that
 ;; side window from any other window if the window is already visible.  This,
@@ -33,41 +33,54 @@
 ;; not, makes for a very powerful but lightweight and convenient means of
 ;; navigating a project’s directory structure.
 
-;; To activate the DIRED configuration, do something like this:
+;; To activate the Dired configuration, do something like this:
 ;; (require 'aside-dired)
-;; (push aside-configuration-dired aside-configurations)
-;; (push (aside-configuration-display-buffer-alist 'dired)
-;;       display-buffer-alist)
-;; (defalias 'my-aside-dired-dwim
-;;   (aside-window-toggle-dwim (aside-dired-subdir-matcher) #'aside-dired)
-;;   "DWIM command for the Dired side window.")
-;; (define-key global-map (kbd "C-S-s") #'my-aside-dired-dwim)
-;; (aside-dired-define-key-overrides)
-
-;; You may also want to hide everything but the file names by default with:
-;; (add-hook 'dired-mode-hook #'dired-hide-details-mode)
+;; (define-key global-map (kbd "C-S-d") #'aside-dired-dwim)
 
 
 ;;; Code:
 
+(require 'aside)
+(require 'aside-hook-functions)
 (require 'dired)
+(require 'rx)
 
-(defcustom aside-dired-root-dir #'aside--dired-root-dir
-  "A function which should return the root directory of the project the
-current buffer belongs to.")
+(defgroup aside-dired ()
+  "Options for the Aside-Dired window.")
 
-(defvar aside-dired-buffer-suffix "aside-dired"
-  "Suffix added to Dired buffer names to differentiate buffers shown in the
-Aside-Dired window.")
+(defcustom aside-dired-buffer-suffix "aside-dired"
+  "Suffix added to buffer names to differentiate Dired buffers shown in the
+Aside-Dired window from those that are not."
+  :group 'aside-dired
+  :type 'string
+  :set #'aside-configuration-setter-function)
 
-(defvar aside-configuration-dired
-  `(dired
-    ,(concat "\\*.+ " aside-dired-buffer-suffix "\\*")
-    ((side . left)
-     (window-width . 24)
-     (window-parameters . ((mode-line-format . (" " "%b"))))))
-  "Configuration for the DIRED window, which displays directory listings for
-the project root directory and its subdirectories.")
+(defcustom aside-dired-condition
+  (rx (seq "*" (one-or-more any) (literal aside-dired-buffer-suffix) "*"))
+  "A regexp or function which will be used in ‘display-buffer-alist’ to match
+the names of buffers that should be displayed in the Dired-Aside window.
+
+This option uses a custom setter.  If you change this option outside of
+Customize, you will probably want to call ‘aside-disable-configuration’ before
+changing this value, and ‘aside-enable-configuration’ after the new value has
+been set."
+  :group 'aside-dired
+  :type '(choice regexp function)
+  :set #'aside-configuration-setter-function)
+
+(defcustom aside-dired-action-alist
+  '((side . left)
+    (window-width . 24)
+    (window-parameters . ((mode-line-format . (" %b")))))
+  "An alist suitable for passing as the ACTION argument to ‘display-buffer’ when displaying buffers in the Dired-Aside window.
+
+This option uses a custom setter.  If you change this option outside of
+Customize, you will probably want to call ‘aside-disable-configuration’ before
+changing this value, and ‘aside-enable-configuration’ after the new value has
+been set."
+  :group 'aside-dired
+  :type 'sexp
+  :set #'aside-configuration-setter-function)
 
 (defun aside--dired-root-dir-magit ()
   "Tries to use Magit’s MAGIT-GIT-DIR function to determine the project root
@@ -79,87 +92,104 @@ dir, if it happens to be available."
 
 (defun aside--dired-root-dir-project ()
   "Tries to use project.el’s PROJECT-CURRENT function to determine the project
-root dir,if it happens to be available."
-  (when (fboundp 'project-current)
-    (let ((project-info (project-current)))
-      (when project-info
-        (cdr project-info)))))
-
-(defun aside--dired-root-dir-vc ()
-  "Tries to use VC’s VC-ROOT-DIR function to determine the project root dir,
-if it happens to be available."
-  (when (fboundp 'vc-root-dir)
-    (vc-root-dir)))
+root dir."
+  (let ((project-info (project-current)))
+    (when project-info
+      (cdr project-info))))
 
 (defun aside--dired-root-dir ()
   "Tries to find the root directory of the project the file of the current
 buffer belongs to."
   (or (aside--dired-root-dir-magit)
       (aside--dired-root-dir-project)
-      (aside--dired-root-dir-vc)
+      (vc-root-dir)
       default-directory))
 
-(defun aside-dired-subdir-matcher ()
+(defcustom aside-dired-root-dir #'aside--dired-root-dir
+  "A function which should return the root directory of the project the
+current buffer belongs to."
+  :group 'aside-dired
+  :type 'function)
+
+(defun aside-dired-find-file ()
+  "A wrapper around the standard ‘dired-find-file’ functionality which uses
+‘aside-dired’ to open directories and ensure files are not opened in the side
+window, if the current buffer is an Aside-Dired buffer."
+  (interactive)
+  (let ((file (dired-get-file-for-visit)))
+    (if (file-directory-p file)
+        (aside--dired file)
+        (dired--find-file #'find-file-other-window file))
+    (dired--find-file #'find-file file)))
+
+(defun aside-dired-up-directory ()
+  "A wrapper around the standard ‘dired-up-directory’ functionality which uses
+‘aside-dired’ to open parent directories in the side window, if the current
+buffer is an Aside-Dired buffer."
+  (interactive)
+  (let* ((dir (dired-current-directory))
+         (up (file-name-directory (directory-file-name dir))))
+    (aside--dired up)))
+
+(defcustom aside-dired-mode-hook
+  ;; A hook named ‘aside-dired-hook’ would also be run by the function defined
+  ;; by ‘aside--define-buffer-display-function’ for Aside-Dired, and hooks
+  ;; named in that way are used by the other configurations.  However,
+  ;; because a minor mode is defined to add key bindings, and defining a minor
+  ;; mode also implicitly defines a hook, to reduce confusion I have named
+  ;; this hook ‘aside-dired-mode-hook’ so we don’t have two hook variables.
+  '(dired-hide-details-mode
+    aside-hook-reduce-font-size
+    aside-hook-enable-truncate-lines
+    aside-hook-disable-display-line-numbers-mode)
+  "Normal hook run when opening a buffer in the Aside-Dired window."
+  :group 'aside-dired
+  :type 'hook
+  :options '(dired-hide-details-mode
+             aside-hook-reduce-font-size
+             aside-hook-enable-truncate-lines
+             aside-hook-disable-display-line-numbers-mode))
+
+(defun aside--dired-subdir-matcher ()
   "Matches Dired buffers the names of which follow the format for buffer names
 Aside-Dired generates, for the project root dir and any of its subdirs."
   (lambda (buffer)
     (let ((root (funcall aside-dired-root-dir)))
       (when root
         (string-match
-         (concat "\\\*"
+         (format "\\\*%s.* %s\\\*"
                  (regexp-quote (expand-file-name root))
-                 "?.* "
-                 aside-dired-buffer-suffix
-                 "\\\*")
+                 aside-dired-buffer-suffix)
          (buffer-name buffer))))))
 
-(defun aside-dired (&optional dir)
+(defvar aside-dired-mode-map
+  (let ((map (make-composed-keymap nil dired-mode-map)))
+    (define-key map [remap dired-find-file] #'aside-dired-find-file)
+    (define-key map [remap dired-up-directory] #'aside-dired-up-directory)
+    map)
+  "Keymap which overrides some Dired functions with Aside-Dired variants.")
+
+(define-minor-mode aside-dired-mode
+  "A minor mode which enables Aside-specific behavior in Dired buffers."
+  :lighter " D-A"
+  :keymap aside-dired-mode-map)
+
+(defun aside--dired (&optional dir)
   "Open a Dired buffer at DIR in the Aside-Dired side window.  If DIR is not
-supplied, call ASIDE-DIRED-ROOT-DIR and use its return value instead."
+supplied, call ‘aside-dired-root-dir’ and use its return value instead."
   (let* ((dir (or dir (funcall aside-dired-root-dir)))
          (buffer (dired-noselect (expand-file-name dir))))
     (with-current-buffer buffer
       (rename-buffer
-       (concat "*"
+       (format "*%s %s*"
                (expand-file-name dired-directory)
-               " "
-               aside-dired-buffer-suffix
-               "*")
-       t))
+               aside-dired-buffer-suffix)
+       t)
+      (aside-dired-mode))
     (select-window (display-buffer buffer))))
 
-(defun aside-dired-find-file ()
-  "A wrapper around the standard DIRED-FIND-FILE functionality which uses
-ASIDE-DIRED to open directories and ensure files are not opened in the side
-window, if the current buffer is an Aside-Dired buffer."
-  (interactive)
-  (if (string-match (aside-configuration-buffer-matcher 'dired) (buffer-name))
-      (let ((file (dired-get-file-for-visit)))
-        (if (file-directory-p file)
-            (aside-dired file)
-            (dired--find-file #'find-file-other-window file))
-        (dired--find-file #'find-file file))
-      (dired-find-file)))
-
-(defun aside-dired-up-directory ()
-  "A wrapper around the standard DIRED-UP-DIRECTORY functionality which uses
-ASIDE-DIRED to open parent directories in the side window, if the current
-buffer is an Aside-Dired buffer."
-  (interactive)
-  (if (string-match (aside-configuration-buffer-matcher 'dired) (buffer-name))
-      (let* ((dir (dired-current-directory))
-             (up (file-name-directory (directory-file-name dir))))
-        (aside-dired up))
-      (dired-up-directory)))
-
-(defun aside-dired-define-key-overrides ()
-  "Rebinds C-m and ^ in dired buffers to call the Aside-Dired versions of the
-DIRED-FIND-FILE and DIRED-UP-DIRECTORY functions. Unless you rebind these keys
-to something else in the first place, using these functions in place of the
-original Dired functions should not cause problems, as the Aside-Dired
-versions of these functions only cause a change in behaviour from Aside-Dired
-buffers."
-  (define-key dired-mode-map (kbd "C-m") #'aside-dired-find-file)
-  (define-key dired-mode-map (kbd "^") #'aside-dired-up-directory))
+(defalias 'aside-dired-dwim
+  (aside-window-toggle-dwim (aside--dired-subdir-matcher) #'aside--dired)
+  "DWIM command for the Aside-Dired window.")
 
 (provide 'aside-dired)
