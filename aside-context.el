@@ -4,7 +4,7 @@
 
 ;; Author: Matt Beshara <m@mfa.pw>
 ;; URL: https://github.com/mattbeshara/aside-el
-;; Version: 1.1.0
+;; Version: 1.2.0
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -31,6 +31,13 @@
 ;; my place in any other buffer, but the window they appear in should be big
 ;; enough to let me see the information I need with a minimum of scrolling.
 ;;
+;; Many of the variables in this file defined with ‘defcustom’ use a custom
+;; setter.  If you change the value of those variable outside of Customize and
+;; do not use ‘customize-set-variable’ to do so, you may want to call
+;; ‘aside-disable-configuration’ before changing the value, and
+;; ‘aside-enable-configuration’ after the new value has been set.
+;;
+;; Loading this file will modify ‘display-buffer-alist’.
 ;; To activate the Context configuration, do something like the following:
 ;; (require 'aside-context)
 ;; (define-key global-map (kbd "C-S-h") #'aside-context-dwim)
@@ -54,13 +61,9 @@
           "*Occur*"
           "*rg*"
           "*xref*"))
-  "A regexp or function which will be used in ‘display-buffer-alist’ to match
-the names of buffers that should be displayed in the Aside-Context window.
-
-This option uses a custom setter.  If you change this option outside of
-Customize, you will probably want to call ‘aside-disable-configuration’ before
-changing this value, and ‘aside-enable-configuration’ after the new value has
-been set."
+  "Used as a CONDITION in ‘display-buffer-alist’.
+Matches the names of buffers that should be displayed in the
+Aside-Context window."
   :group 'aside-context
   :type '(choice regexp function)
   :set #'aside-configuration-setter-function)
@@ -68,13 +71,9 @@ been set."
 (defcustom aside-context-action-alist
   '((side . right)
     (window-width . 60))
-  "An alist suitable for passing as the ACTION argument to ‘display-buffer’
-when displaying buffers in the Aside-Context window.
-
-This option uses a custom setter.  If you change this option outside of
-Customize, you will probably want to call ‘aside-disable-configuration’ before
-changing this value, and ‘aside-enable-configuration’ after the new value has
-been set."
+  "Alist used as the ACTION argument to ‘display-buffer’.
+Applied to windows containing buffers matched by
+‘aside-context-condition’."
   :group 'aside-context
   :type 'sexp
   :set #'aside-configuration-setter-function)
@@ -83,7 +82,7 @@ been set."
   '(aside-hook-reduce-font-size
     aside-hook-enable-truncate-lines
     aside-hook-disable-display-line-numbers-mode)
-  "Normal hook run when opening a buffer in the Aside-Context window."
+  "Normal hook run for buffers in the Aside-Context window."
   :group 'aside-context
   :type 'hook
   :options '(aside-hook-reduce-font-size
@@ -95,3 +94,5 @@ been set."
   "DWIM command for the Aside-Context window.")
 
 (provide 'aside-context)
+
+;;; aside-context.el ends here

@@ -4,7 +4,7 @@
 
 ;; Author: Matt Beshara <m@mfa.pw>
 ;; URL: https://github.com/mattbeshara/aside-el
-;; Version: 1.1.0
+;; Version: 1.2.0
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -36,14 +36,16 @@
     (toggle-truncate-lines 1)))
 
 (defun aside-hook-disable-display-line-numbers-mode ()
-  "Disables ‘display-line-numbers-mode’."
+  "Call command ‘display-line-numbers-mode’ to disable line numbers."
   (when (fboundp 'display-line-numbers-mode)
     (display-line-numbers-mode -1)))
 
 (defun aside-hook-reduce-font-size ()
-  "Makes the font size of the default face a bit smaller."
+  "Make the font size of the default face a bit smaller."
   (face-remap-add-relative 'default
                            :height (- (face-attribute 'default :height)
                                       10)))
 
 (provide 'aside-hook-functions)
+
+;;; aside-hook-functions.el ends here

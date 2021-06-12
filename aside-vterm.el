@@ -4,7 +4,7 @@
 
 ;; Author: Matt Beshara <m@mfa.pw>
 ;; URL: https://github.com/mattbeshara/aside-el
-;; Version: 1.1.0
+;; Version: 1.2.0
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -28,6 +28,13 @@
 ;; pressing a simple key binding.  Only a single, shared, global VTerm
 ;; instance is used.
 ;;
+;; Many of the variables in this file defined with ‘defcustom’ use a custom
+;; setter.  If you change the value of those variable outside of Customize and
+;; do not use ‘customize-set-variable’ to do so, you may want to call
+;; ‘aside-disable-configuration’ before changing the value, and
+;; ‘aside-enable-configuration’ after the new value has been set.
+;;
+;; Loading this file will modify ‘display-buffer-alist’.
 ;; To activate the VTerm configuration, do something like the following:
 ;; (require 'aside-vterm)
 ;; (define-key global-map (kbd "C-`") #'aside-vterm-dwim)
@@ -45,25 +52,16 @@
 
 (defcustom aside-vterm-buffer-name
   "*Aside-VTerm*"
-  "The name for the single, shared, global Aside-Vterm buffer.
-
-This option uses a custom setter.  If you change this option outside of
-Customize, you will probably want to call ‘aside-disable-configuration’ before
-changing this value, and ‘aside-enable-configuration’ after the new value has
-been set."
+  "The name for the single, shared, global Aside-Vterm buffer."
   :group 'aside-vterm
   :type 'string
   :set #'aside-configuration-setter-function)
 
 (defcustom aside-vterm-condition
   (rx (literal aside-vterm-buffer-name))
-  "A regexp or function which will be used in ‘display-buffer-alist’ to match
-the names of buffers that should be displayed in the Aside-VTerm window.
-
-This option uses a custom setter.  If you change this option outside of
-Customize, you will probably want to call ‘aside-disable-configuration’ before
-changing this value, and ‘aside-enable-configuration’ after the new value has
-been set."
+  "Used as a CONDITION in ‘display-buffer-alist’.
+Matches the names of buffers that should be displayed in the
+Aside-VTerm window."
   :group 'aside-vterm
   :type '(choice regexp function)
   :set #'aside-configuration-setter-function)
@@ -71,13 +69,9 @@ been set."
 (defcustom aside-vterm-action-alist
   '((side . bottom)
     (window-height . 10))
-  "An alist suitable for passing as the ACTION argument to ‘display-buffer’
-when displaying buffers in the Aside-VTerm window.
-
-This option uses a custom setter.  If you change this option outside of
-Customize, you will probably want to call ‘aside-disable-configuration’ before
-changing this value, and ‘aside-enable-configuration’ after the new value has
-been set."
+  "Alist Used as the ACTION argument in ‘display-buffer’.
+Applied to windows containing buffers matched by
+‘aside-vterm-condition’."
   :group 'aside-vterm
   :type 'sexp
   :set #'aside-configuration-setter-function)
@@ -86,7 +80,7 @@ been set."
   '(aside-hook-reduce-font-size
     aside-hook-enable-truncate-lines
     aside-hook-disable-display-line-numbers-mode)
-  "Normal hook run when opening a buffer in the Aside-VTerm window."
+  "Normal hook run for buffers in the Aside-VTerm window."
   :group 'aside-vterm
   :type 'hook
   :options '(aside-hook-reduce-font-size
@@ -94,8 +88,7 @@ been set."
              aside-hook-disable-display-line-numbers-mode))
 
 (defun aside--vterm ()
-  "Creates a VTerm buffer which has the correct name and respects the options
-specified in ‘display-buffer-alist’."
+  "Create an Aside-VTerm buffer if necessary, and display it."
   (let ((buffer (get-buffer-create aside-vterm-buffer-name)))
     (with-current-buffer buffer
       (unless (derived-mode-p 'vterm-mode)
@@ -107,3 +100,5 @@ specified in ‘display-buffer-alist’."
   "DWIM command for the Aside-VTerm window.")
 
 (provide 'aside-vterm)
+
+;;; aside-vterm.el ends here
