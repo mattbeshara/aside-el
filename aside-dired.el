@@ -74,8 +74,7 @@ Aside-Dired window."
 
 (defcustom aside-dired-action-alist
   '((side . left)
-    (window-width . 24)
-    (window-parameters . ((mode-line-format . (" %b")))))
+    (window-width . 24))
   "Alist used as the ACTION argument to ‘display-buffer’.
 Applies to windows containing buffers matched by
 ‘aside-dired-condition’."
