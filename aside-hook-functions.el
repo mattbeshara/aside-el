@@ -40,11 +40,18 @@
   (when (fboundp 'display-line-numbers-mode)
     (display-line-numbers-mode -1)))
 
-(defun aside-hook-reduce-font-size ()
-  "Make the font size of the default face a bit smaller."
-  (face-remap-add-relative 'default
-                           :height (- (face-attribute 'default :height)
-                                      10)))
+(defun aside-hook-change-default-face-height ()
+  "Change the height of the default face in the current buffer."
+  (face-remap-add-relative 'default :height aside-default-face-height))
+
+(defgroup aside ()
+  "Options for Aside side windows.")
+
+(defcustom aside-default-face-height 120
+  "The default face height to use in buffers in a side window.
+Used in ‘aside-hook-change-default-face-height’."
+  :group 'aside
+  :type 'integer)
 
 (provide 'aside-hook-functions)
 

@@ -79,13 +79,13 @@ Applied to windows containing buffers matched by
   :set #'aside-configuration-setter-function)
 
 (defcustom aside-context-hook
-  '(aside-hook-reduce-font-size
+  '(aside-hook-change-default-face-height
     aside-hook-enable-truncate-lines
     aside-hook-disable-display-line-numbers-mode)
   "Normal hook run for buffers in the Aside-Context window."
   :group 'aside-context
   :type 'hook
-  :options '(aside-hook-reduce-font-size
+  :options '(aside-hook-change-default-face-height
              aside-hook-enable-truncate-lines
              aside-hook-disable-display-line-numbers-mode))
 

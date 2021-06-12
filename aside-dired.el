@@ -126,14 +126,14 @@ Calls ‘aside--dired’ to open parent dirs in the side window."
   ;; mode also implicitly defines a hook, to reduce confusion I have named
   ;; this hook ‘aside-dired-mode-hook’ so only one hook variable is in use.
   '(dired-hide-details-mode
-    aside-hook-reduce-font-size
+    aside-hook-change-default-face-height
     aside-hook-enable-truncate-lines
     aside-hook-disable-display-line-numbers-mode)
   "Normal hook run for buffers in the Aside-Dired window."
   :group 'aside-dired
   :type 'hook
   :options '(dired-hide-details-mode
-             aside-hook-reduce-font-size
+             aside-hook-change-default-face-height
              aside-hook-enable-truncate-lines
              aside-hook-disable-display-line-numbers-mode))
 
