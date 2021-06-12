@@ -37,9 +37,9 @@
 ;; ‘aside-disable-configuration’ before changing the value, and
 ;; ‘aside-enable-configuration’ after the new value has been set.
 ;;
-;; Loading this file will modify ‘display-buffer-alist’.
 ;; To activate the Context configuration, do something like the following:
 ;; (require 'aside-context)
+;; (aside-enable-configuration 'context)
 ;; (define-key global-map (kbd "C-S-h") #'aside-context-dwim)
 
 

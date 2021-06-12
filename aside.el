@@ -172,7 +172,7 @@ then runs the appropriate configuration’s hook if necessary."
 
 (defun aside-enable-configuration (id)
   "Enable a configuration specified by ID.
-If an ‘eql’ list is not already present in
+If an ‘equal’ list is not already present in
 ‘display-buffer-alist’, this function pushes a list composed
 of ‘aside-<id>-condition’ and ‘aside-<id>-action-alist’ to
 it.  It also calls ‘aside--define-buffer-display-function’
@@ -184,22 +184,31 @@ buffer is displayed."
                (aside--configuration-display-buffer-alist id)))
 
 (defun aside-disable-configuration (id)
-  "Disable a configuration specified by ID.
+  "Disable a configuration specified by ID if one is enabled.
 Removes a list composed of ‘aside-<id>-condition’ and
 ‘aside-<id>-action-alist’ from ‘display-buffer-alist’, if
-one is present."
-  (setq display-buffer-alist
-        (delete (aside--configuration-display-buffer-alist id)
-                display-buffer-alist)))
+one is present.  Otherwise, returns nil."
+  (when (member (aside--configuration-display-buffer-alist id)
+                display-buffer-alist)
+    (setq display-buffer-alist
+          (delete (aside--configuration-display-buffer-alist id)
+                  display-buffer-alist))))
 
 (defun aside-configuration-setter-function (name value)
   "Set customizable option NAME to VALUE.
-This function disables the old configuration before enabling
-a new one which uses the newly set value."
+This function first checks if there is already an enabled
+configuration corresponding to NAME, and if there is, it
+will disable the old configuration before setting the new
+value, and then enabling a new configuration which uses the
+new value.  If a matching configuration is not already
+enabled, all that happens is that the variable NAME is ‘set’
+to VALUE."
   (let ((configuration-id (aside--configuration-id-from-var-name name)))
-    (aside-disable-configuration configuration-id)
-    (set name value)
-    (aside-enable-configuration configuration-id)))
+    (if (aside-disable-configuration configuration-id)
+        (progn
+          (set name value)
+          (aside-enable-configuration configuration-id))
+        (set name value))))
 
 
 ;; Public interface

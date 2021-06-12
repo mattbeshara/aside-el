@@ -39,9 +39,9 @@
 ;; ‘aside-disable-configuration’ before changing the value, and
 ;; ‘aside-enable-configuration’ after the new value has been set.
 ;;
-;; Loading this file will modify ‘display-buffer-alist’.
 ;; To activate the Dired configuration, do something like this:
 ;; (require 'aside-dired)
+;; (aside-enable-configuration 'dired)
 ;; (define-key global-map (kbd "C-S-d") #'aside-dired-dwim)
 
 

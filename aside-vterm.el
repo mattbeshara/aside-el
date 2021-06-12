@@ -34,9 +34,9 @@
 ;; ‘aside-disable-configuration’ before changing the value, and
 ;; ‘aside-enable-configuration’ after the new value has been set.
 ;;
-;; Loading this file will modify ‘display-buffer-alist’.
 ;; To activate the VTerm configuration, do something like the following:
 ;; (require 'aside-vterm)
+;; (aside-enable-configuration 'vterm)
 ;; (define-key global-map (kbd "C-`") #'aside-vterm-dwim)
 
 
