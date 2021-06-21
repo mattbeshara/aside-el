@@ -4,7 +4,7 @@
 
 ;; Author: Matt Beshara <m@mfa.pw>
 ;; URL: https://github.com/mattbeshara/aside-el
-;; Version: 1.3.0
+;; Version: 1.4.0
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -39,6 +39,10 @@
   "Call command ‘display-line-numbers-mode’ to disable line numbers."
   (when (fboundp 'display-line-numbers-mode)
     (display-line-numbers-mode -1)))
+
+(defun aside-hook-change-default-face-pitch ()
+  "Make the default face inherit from ‘variable-pitch’."
+  (face-remap-add-relative 'default :inherit 'variable-pitch))
 
 (defun aside-hook-change-default-face-height ()
   "Change the height of the default face in the current buffer."

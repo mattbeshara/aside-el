@@ -4,7 +4,7 @@
 
 ;; Author: Matt Beshara <m@mfa.pw>
 ;; URL: https://github.com/mattbeshara/aside-el
-;; Version: 1.3.0
+;; Version: 1.4.0
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -125,7 +125,7 @@ Calls ‘aside--dired’ to open parent dirs in the side window."
   ;; mode also implicitly defines a hook, to reduce confusion I have named
   ;; this hook ‘aside-dired-mode-hook’ so only one hook variable is in use.
   '(dired-hide-details-mode
-    aside-hook-change-default-face-height
+    aside-hook-change-default-face-pitch
     aside-hook-enable-truncate-lines
     aside-hook-disable-display-line-numbers-mode)
   "Normal hook run for buffers in the Aside-Dired window."
@@ -133,6 +133,7 @@ Calls ‘aside--dired’ to open parent dirs in the side window."
   :type 'hook
   :options '(dired-hide-details-mode
              aside-hook-change-default-face-height
+             aside-hook-change-default-face-pitch
              aside-hook-enable-truncate-lines
              aside-hook-disable-display-line-numbers-mode))
 

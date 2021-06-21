@@ -4,7 +4,7 @@
 
 ;; Author: Matt Beshara <m@mfa.pw>
 ;; URL: https://github.com/mattbeshara/aside-el
-;; Version: 1.3.0
+;; Version: 1.4.0
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -86,6 +86,7 @@ Applied to windows containing buffers matched by
   :group 'aside-context
   :type 'hook
   :options '(aside-hook-change-default-face-height
+             aside-hook-change-default-face-pitch
              aside-hook-enable-truncate-lines
              aside-hook-disable-display-line-numbers-mode))
 
