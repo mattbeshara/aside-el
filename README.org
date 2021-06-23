@@ -1,0 +1,44 @@
+* Aside
+  Aside is a package written with the aim of making it easy and convenient to
+  use side windows for arbitrary sets of buffers.  Specifically, Aside lets
+  you specify a configuration for a side window which determines which buffers
+  are displayed in that window, where the window is located, which
+  window-specific customisations that window should have, and define a
+  ‘do-what-I-mean’ (DWIM) command for navigating to and toggling the
+  visibility of the window, all in as little as a dozen lines of code.  Much
+  of this flexibility springs directly from Emacs’ built-in
+  ‘display-buffer-alist’ variable, however Aside can make it more convenient
+  to define configurations for ‘display-buffer-alist’ that you can easily
+  separate and use independently from one another, and Emacs does not come
+  with any equivalent to the DWIM commands Aside can generate.
+
+  Here is an example of a configuration named ‘search’ which displays Grep,
+  Occur, and rg buffers in a side window displayed at the bottom
+  of a frame, with a couple of hooks used to customise the appearance of the
+  buffers it displays, and a DWIM command for showing, jumping to, and hiding
+  that side window.  In my testing, the example below works as intended when
+  evaluated after evaluating all the suggested configurations in the .el files
+  in this repo.  The names of the variables are significant; an Aside
+  ‘configuration’ is really nothing more than a set of a few variables which
+  are named following a specific convention.  The code in ‘aside.el’ can be
+  examined for more information about this.
+
+#+BEGIN_SRC emacs-lisp_
+(setq aside-search-condition (rx (or "*grep*" "*Occur*" "*rg*")))
+
+(setq aside-search-action-alist
+      '((side . bottom)
+        (slot . -1)
+        (window-height . 10)))
+
+(setq aside-search-hook
+      '(aside-hook-change-default-face-height
+        aside-hook-enable-truncate-lines))
+
+(defalias 'aside-search-dwim (aside-window-toggle-dwim 'search))
+
+(aside-enable-configuration 'search)
+
+(define-key global-map (kbd "C-S-s") #'aside-search-dwim)
+#+END_SRC
+
