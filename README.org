@@ -24,7 +24,8 @@
   examined for more information about this.
 
 #+BEGIN_SRC emacs-lisp_
-(setq aside-search-condition (rx (or "*grep*" "*Occur*" "*rg*")))
+(setq aside-search-condition
+ (rx (or "*Embark Export Grep*" "*grep*" "*Occur*" "*rg*")))
 
 (setq aside-search-action-alist
       '((side . bottom)

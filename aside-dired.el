@@ -4,7 +4,7 @@
 
 ;; Author: Matt Beshara <m@mfa.pw>
 ;; URL: https://github.com/mattbeshara/aside-el
-;; Version: 1.4.0
+;; Version: 1.4.1
 
 ;; This file is NOT part of GNU Emacs.
 
